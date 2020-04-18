@@ -1,3 +1,15 @@
+"""
+The astro module contains basic astronomical calculations of angles, time and
+coordinate systems.
+
+If not otherwise stated, the formulas are based on:
+Montenbruck O.; Grundlagen der Ephemeridenrechnung; Spektrum Akademischer
+Verlag, München, 7. Auflage (2005)
+
+
+----
+"""
+
 import math
 import datetime
 

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+Qt star chart GUI.
+
+
+----
+"""
 
 import sys
 import os

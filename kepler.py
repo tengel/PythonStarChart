@@ -1,3 +1,15 @@
+"""
+The kepler module calculates the position of the planets by solving the two-body
+problem.
+
+The calculations are based on:
+Montenbruck O.; Grundlagen der Ephemeridenrechnung; Spektrum Akademischer
+Verlag, München, 7. Auflage (2005)
+
+
+----
+"""
+
 import math
 import sys
 import copy
