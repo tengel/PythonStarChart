@@ -199,6 +199,18 @@ class Sun:
         painter.drawEllipse(QPoint(x, y), 6, 6)
         painter.drawText(x, y, "  Sun")
 
+class Moon:
+    def __init__(self, engine):
+        raDec = astro.calcPositionMoon(astro.julian_date(engine.dateTime))
+        self.azimuth, self.elevation = engine.equatorial2horizontal(raDec[0] / 15,
+                                                                    raDec[1])
+    def draw(self, chart, painter):
+        painter.setPen(Qt.SolidLine)
+        painter.setPen(QColor("black"))
+        painter.setBrush(QColor("LightBlue"))
+        x, y = chart.horizontal2area(self.azimuth, self.elevation)
+        painter.drawEllipse(QPoint(x, y), 5, 5)
+        painter.drawText(x, y, "  Moon")
 
 class Catalog:
     def __init__(self):
@@ -302,16 +314,16 @@ class Engine:
         :param float declination: Geocentric equatorial declination in degree
         :return: (azimut, elevation)
         """
-        hourAngle = (self.localSideralTime - rightAscension) * 15.0
+        hourAngle = (self.localSiderealTime - rightAscension) * 15.0
         azimuth, elevation = astro.geoEqua2geoHori(hourAngle, self.lat, declination)
         return (azimuth, elevation)
 
     def update(self):
         self.objects = []
         utcHour = self.dateTime.hour + self.dateTime.minute / 60.0
-        sideralTime = astro.sideral_time(self.dateTime.year, self.dateTime.month,
-                                         self.dateTime.day, utcHour)
-        self.localSideralTime = sideralTime + self.lon / 15.0 # in h
+        siderealTime = astro.sidereal_time(self.dateTime.year, self.dateTime.month,
+                                           self.dateTime.day, utcHour)
+        self.localSiderealTime = siderealTime + self.lon / 15.0 # in h
         for star in self.catalog.list:
             if star.apparentMagnitude > self.maxMagnitude:
                 continue
@@ -330,6 +342,7 @@ class Engine:
         if self.eclipticEnabled:
             self.objects.append(Ecliptic(self))
         self.objects.append(Sun(self))
+        self.objects.append(Moon(self))
 
     def getObjects(self):
         return self.objects

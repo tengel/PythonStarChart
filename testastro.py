@@ -7,37 +7,37 @@ from astro import *
 class AstroTest(unittest.TestCase):
 
         def testSin(self):
-                self.assertAlmostEqual(90, asin(sin(90)), "Sinus 90")
-                self.assertAlmostEqual(0,  asin(sin(0)),  "Sinus 0")
-                self.assertAlmostEqual(31, asin(sin(31)), "Sinus 31")
+                self.assertAlmostEqual(90, asin(sin(90)), "sin 90")
+                self.assertAlmostEqual(0,  asin(sin(0)),  "sin 0")
+                self.assertAlmostEqual(31, asin(sin(31)), "sin 31")
 
         def testCos(self):
-                self.assertAlmostEqual(90, acos(cos(90)), "Cosinus 90")
-                self.assertAlmostEqual(0,  acos(cos(0)),  "Cosinus 0")
-                self.assertAlmostEqual(62, acos(cos(62)), "Cosinus 62")
+                self.assertAlmostEqual(90, acos(cos(90)), "cos 90")
+                self.assertAlmostEqual(0,  acos(cos(0)),  "cos 0")
+                self.assertAlmostEqual(62, acos(cos(62)), "cos 62")
 
         def testTan(self):
-                self.assertAlmostEqual(45, atan(tan(45)), "Tangens 45")
-                self.assertAlmostEqual(0,  atan(tan(0)), "Tangens 0")
-                self.assertAlmostEqual(31, atan(tan(31)), "Tangens 31")
+                self.assertAlmostEqual(45, atan(tan(45)), "tan 45")
+                self.assertAlmostEqual(0,  atan(tan(0)), "tan 0")
+                self.assertAlmostEqual(31, atan(tan(31)), "tan 31")
 
         def testJd(self):
                 j = jd(1983, 1, 18, 7 + (12/60))
                 self.assertAlmostEqual(2445352.8, j)
 
-        def testSideralTime(self):
-                theta = sideral_time(1982, 1, 1, 0)
+        def testSiderealTime(self):
+                theta = sidereal_time(1982, 1, 1, 0)
                 h, min, sec = deg2sex(theta)
-                self.assertEqual(h, 6,      "mean sideral time Greenwich h")
-                self.assertEqual(min, 41,   "mean sideral time Greenwich min")
+                self.assertEqual(h, 6,      "mean sidereal time Greenwich h")
+                self.assertEqual(min, 41,   "mean sidereal time Greenwich min")
                 self.assertAlmostEqual(sec, 17.3, places=1,
-                                       msg="mean sideral time Greenwich sec")
+                                       msg="mean sidereal time Greenwich sec")
                 local = theta + 11.60833 / 15
                 h, min, sec = deg2sex(local)
-                self.assertEqual(h, 7,      "mean sideral time Munich h")
-                self.assertEqual(min, 27,   "mean sideral time Munich min")
+                self.assertEqual(h, 7,      "mean sidereal time Munich h")
+                self.assertEqual(min, 27,   "mean sidereal time Munich min")
                 self.assertAlmostEqual(sec, 43.3, places=1,
-                                       msg="mean sideral time Munich sec")
+                                       msg="mean sidereal time Munich sec")
 
         def testGeoEqua2geoHori(self):
                 t = (18 - 16) * 15.0

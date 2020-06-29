@@ -82,9 +82,9 @@ def julian_century(dt):
     """
     return (julian_date(dt) - 2451545.0) / 36525
 
-def sideral_time(sY, sM, sD, sUT):
+def sidereal_time(sY, sM, sD, sUT):
     """
-    Return the mean sideral time of Greenwich in hours.
+    Return the mean sidereal time of Greenwich in hours.
 
     :param int sY: Year
     :param int sM: Month
@@ -243,6 +243,46 @@ def calcPositionSun(jd):
     g = (357.528 + 0.9856003 * n) % 360
     lamb = L + 1.915 * sin(g) + 0.020 * sin(2 * g) # geoc., ecliptic lon
     return geoEcl2geoEqua(0, lamb)   # ra, dec
+
+def calcPositionMoon(jd):
+    """
+    Calculate the geocentric, equatorial position (ra, dec) of the moon for a
+    julian date.
+
+    :param float jd: Julian date
+    :return: Geocentric, equatorial coordinates
+             (right ascension alpha, declination delta) in degree
+    """
+    T  = (jd - 2451545.0) / 36525
+    L0 = (218.31665 + 481267.88134 * T - 0.001327 * T**2) % 360.0
+    l  = (134.96341 + 477198.86763 * T + 0.008997 * T**2) % 360.0
+    l_ = (357.52911 + 35999.05029 * T + 0.000154 * T**2) % 360.0
+    F  = (93.27210 + 483202.01753 * T - 0.003403 * T**2) % 360.0
+    D  = (297.85020 + 445267.11152 * T - 0.001630 * T**2) % 360.0
+    L1 = (22640 * sin(l) + 769 * sin(2 * l) + 36 * sin(3 * l)
+          -4586 * sin(l - 2 * D)
+          +2370 * sin(2 * D)
+          -668  * sin(l_)
+          -412  * sin(2 * F)
+          -212  * sin(2 * l - 2 * D)
+          -206  * sin(l + l_ - 2 * D)
+          +192  * sin(l + 2 * D)
+          -165  * sin(l_ - 2 * D)
+          +148  * sin(l - l_)
+          -125  * sin(D)
+          -110  * sin(l + l_)
+          -55   * sin(2 * F - 2 * D))
+    lamb = L0 + (L1 / 60 / 60) # geocentric, ecliptic longitude
+    B = (18520 * sin(F + lamb - L0 + 0.114 * sin(2 * F) + 0.150 * sin(l_))
+         -526  * sin(+F - 2 * D)
+         +44   * sin(+l + F - 2 * D)
+         -31   * sin(-l + F - 2 * D)
+         -25   * sin(-2 * l + F)
+         -23   * sin(+l_ + F - 2 * D)
+         +21   * sin(-l + F)
+         +11   * sin(-l_ + F - 2 * D))
+    beta = B / 60 / 60 # geocentric, ecliptic latitude
+    return geoEcl2geoEqua(beta, lamb)   # ra, dec
 
 def deg2sex(degree):
     """

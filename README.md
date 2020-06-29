@@ -6,6 +6,7 @@ It shows:
 - stars from the Bright Star Catalog
 - planets
 - sun
+- moon
 - horizon
 - ecliptic
 - azimuthal grid
