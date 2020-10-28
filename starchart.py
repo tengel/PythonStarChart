@@ -356,7 +356,7 @@ class Chart(QWidget):
         self.chartLayout.addWidget(self.area)
         self.setLayout(self.chartLayout)
         self.engine = Engine()
-        self.engine.setLocation(53.14, 8.19)
+        self.engine.setLocation(51.31, 9.49)
         self.engine.setTime(datetime.datetime.now().astimezone())
         self.engine.update()
         self.area.addObjects(self.engine.getObjects())
@@ -415,11 +415,11 @@ if __name__ == "__main__":
     latBox = QDoubleSpinBox()
     latBox.setMinimum(-90)
     latBox.setMaximum(90)
-    latBox.setValue(53.14)
+    latBox.setValue(51.31)
     latBox.valueChanged.connect(lambda: chart.setLocation(latBox.value(),
                                                           lonBox.value()))
     lonBox = QDoubleSpinBox()
-    lonBox.setValue(8.19)
+    lonBox.setValue(9.49)
     lonBox.setMinimum(-180)
     lonBox.setMaximum(180)
     lonBox.valueChanged.connect(lambda: chart.setLocation(latBox.value(),

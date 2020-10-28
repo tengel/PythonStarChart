@@ -18,7 +18,7 @@ class AstroTest(unittest.TestCase):
 
         def testTan(self):
                 self.assertAlmostEqual(45, atan(tan(45)), "tan 45")
-                self.assertAlmostEqual(0,  atan(tan(0)), "tan 0")
+                self.assertAlmostEqual(0,  atan(tan(0)),  "tan 0")
                 self.assertAlmostEqual(31, atan(tan(31)), "tan 31")
 
         def testJd(self):
@@ -95,6 +95,11 @@ class AstroTest(unittest.TestCase):
                 ra, dec = calcPositionSun(jd(2020, 1, 1, 12))
                 self.assertAlmostEqual(ra, 281.44595, places=4)
                 self.assertAlmostEqual(dec, -23.0221, places=4)
+
+        def testPositionMoon(self):
+                ra, dec = calcPositionMoon(jd(2020, 1, 1, 18))
+                self.assertAlmostEqual(ra, 357.511, places=1)
+                self.assertAlmostEqual(dec, -6.686, places=1)
 
 
 if __name__ == '__main__':

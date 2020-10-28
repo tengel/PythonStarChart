@@ -298,3 +298,128 @@ def sex2deg(d, m, s):
     Convert sexagesimal deg, min, sec to degree float.
     """
     return d + (m / 60) + (s / 60 / 60)
+
+def calcRiseSet_star(longitude, latitude, date, objRa, objDec):
+    """
+    Calculate the rise time and set time of a star.
+
+    :param float longitude: Geographical longitude of observer (degree).
+    :param float latitude: Geographical latitude of observer (degree).
+    :param datetime date: Date (python date object).
+    :param float objRa: Right ascension of star (h).
+    :param float objDec: Declination of star (degree).
+    :return: Returns (rise time, set time) as python datetime objects.
+    """
+    objType = "star"
+    elevation = -0.566667
+    r = calcRiseSet(objType, elevation, longitude, latitude,
+                    lambda t: (objRa, objDec),
+                    date, 12, True, 2)
+    s = calcRiseSet(objType, elevation, longitude, latitude,
+                    lambda t: (objRa, objDec),
+                    date, 12, False, 2)
+    return r, s
+
+def calcRiseSet_sun(longitude, latitude, date):
+    """
+    Calculate the rise time and set time of the Sun.
+
+    :param float longitude: Geographical longitude of observer (degree).
+    :param float latitude: Geographical latitude of observer (degree).
+    :param datetime date: Date (python date object).
+    :return: Returns (rise time, set time) as python datetime objects.
+    """
+    objType = "sun"
+    elevation = -0.83333
+    def objPosFunc(t):
+        ra, dec = calcPositionSun(julian_date(t))
+        return ra / 15, dec
+    r = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 6, True, 2)
+    s = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 18, False, 2)
+    return r, s
+
+def calcRiseSet_moon(longitude, latitude, date):
+    """
+    Calculate the rise time and set time of the Moon.
+
+    :param float longitude: Geographical longitude of observer (degree).
+    :param float latitude: Geographical latitude of observer (degree).
+    :param datetime date: Date (python date object).
+    :return: Returns (rise time, set time) as python datetime objects.
+    """
+    objType = "moon"
+    elevation = 0.133333
+    def objPosFunc(t):
+        ra, dec = calcPositionMoon(julian_date(t))
+        return ra / 15, dec
+    r = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 12, True, 5)
+    s = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 12, False, 5)
+    return r, s
+
+def calcRiseSet(objType, elevation, longitude, latitude, objPosFunc, date, T0,
+                calcRise, iterations=1):
+    """
+    General function to calculate the rise time (if calcRise is True) or the set
+    time (if calcRise is False) of different kinds of celestial objects.
+
+    :param string objType: Type of celestial object. Must be one of "star",
+    sun", "moon", "planet".
+    :param float elevation: Horizontal elevation (degree).
+    :param float longitude: Geographical longitude of observer (degree).
+    :param float latitude: Geographical latitude of observer (degree).
+    :param function objPosFunc: This is a function which returns the position
+    (ra [h] / dec [degree]) of the celestial object. The function is called with
+    a Python datetime object as parameter.
+    :param date date: Date (python date object).
+    :param float T0: Initial value for rise/set time (hours as float).
+    :param boolean calcRise: True to calculate rise time. False to calculate
+    set time.
+    :param int iterations: Number of iterations.
+    :return: Returns a python datetime object.
+    """
+    baseDate = datetime.datetime.combine(date, datetime.time())
+    T = T0
+
+    for i in range(0, iterations):
+        localSiderealTime = (sidereal_time(date.year, date.month, date.day, T) +
+                             longitude / 15.0)
+
+        objRa, objDec = objPosFunc(baseDate + datetime.timedelta(hours=T))
+
+        hourAngle = localSiderealTime - objRa # hour angle of object (tau)
+        if hourAngle > 12:
+            hourAngle -= 24
+        elif hourAngle < -12:
+            hourAngle += 24
+
+        x = ((sin(elevation) - sin(latitude) * sin(objDec)) /
+             (cos(latitude) * cos(objDec)))
+        if abs(x) > 1:
+            return None # no rise/set, always or never visible
+        t = acos(x) / 15.0
+        if calcRise:
+            t = -t
+
+        if objType == "star":
+            n = 1.0027379
+        elif objType == "sun":
+            n = 1
+        elif objType == "moon" or objType == "planet":
+            if i == 0:
+                if objType   == "moon":   n = 1.0027 - 0.0366
+                elif objType == "planet": n = 1.0027 - 0
+            else:
+                n = 1.0027 - ((objRa - objRa_last) / (T - T_last))
+        else:
+            raise Exception("invalid object type: %s" % objType)
+
+        T_last = T
+        objRa_last = objRa
+        T = T + ((t - hourAngle) / n)
+
+    delta = datetime.timedelta(hours=T)
+    return (baseDate + delta)

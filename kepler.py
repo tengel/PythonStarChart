@@ -237,3 +237,19 @@ def calcDistanceSun(semiMajorAxis, eccentricity, eccentricAnomaly):
     """
     return semiMajorAxis * (1 - eccentricity * cos(eccentricAnomaly))
 
+
+def calcRiseSet_planet(longitude, latitude, date, planet):
+    objType = "planet"
+    elevation = -0.566667
+    def objPosFunc(t):
+        earth = Earth()
+        earth.calcHeliocentric(t)
+        planet.calcHeliocentric(t)
+        planet.calcGeocentric(earth)
+        return planet.ra / 15, planet.declination
+    r = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 12, True, 3)
+    s = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
+                    date, 12, False, 3)
+    return r, s
+
