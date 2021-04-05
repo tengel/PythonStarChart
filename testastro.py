@@ -55,6 +55,10 @@ class AstroTest(unittest.TestCase):
                 self.assertAlmostEqual(v[0], 1.4692, places=4, msg="beta")
                 self.assertAlmostEqual(v[1], 90.0258, places=4, msg="lamda")
                 self.assertAlmostEqual(v[2], 4.424226, places=6, msg="delta")
+                v = geoEcl2helioEcl(150, 0, 1, v[1], v[0], v[2])
+                self.assertAlmostEqual(v[0], 1.300, places=4, msg="b(lat)")
+                self.assertAlmostEqual(v[1], 100.000, places=4, msg="l(lon)")
+                self.assertAlmostEqual(v[2], 5.000, places=4, msg="r(dist)")
 
         def testSphe2cart(self):
                 beta = 60; lam = 120; r = 5
@@ -97,9 +101,19 @@ class AstroTest(unittest.TestCase):
                 self.assertAlmostEqual(dec, -23.0221, places=4)
 
         def testPositionMoon(self):
-                ra, dec = calcPositionMoon(jd(2020, 1, 1, 18))
+                b, l, d = calcPositionMoon(jd(2020, 1, 1, 18))
+                ra, dec = geoEcl2geoEqua(b, l)
                 self.assertAlmostEqual(ra, 357.511, places=1)
                 self.assertAlmostEqual(dec, -6.686, places=1)
+                b, l, d = calcPositionMoon(jd(2005, 8, 2, 0))
+                self.assertAlmostEqual(b, 4.9504, places=4)
+                self.assertAlmostEqual(l, 95.5624, places=4)
+                self.assertAlmostEqual(d, 0.002697, places=6)
+
+        def testPhase(self):
+                delta = 1.3135; r = 1.4030; R = 0.9852
+                i = calcPhase(delta, r, R)
+                self.assertAlmostEqual(i, 87, places=0)
 
 
 if __name__ == '__main__':

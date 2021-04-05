@@ -201,7 +201,8 @@ class Sun:
 
 class Moon:
     def __init__(self, engine):
-        raDec = astro.calcPositionMoon(astro.julian_date(engine.dateTime))
+        b, l, d = astro.calcPositionMoon(astro.julian_date(engine.dateTime))
+        raDec = astro.geoEcl2geoEqua(b, l)
         self.azimuth, self.elevation = engine.equatorial2horizontal(raDec[0] / 15,
                                                                     raDec[1])
     def draw(self, chart, painter):

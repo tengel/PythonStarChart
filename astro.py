@@ -13,6 +13,8 @@ Verlag, München, 7. Auflage (2005)
 import math
 import datetime
 
+AU = 149597870.7 # AU in km
+
 def sin(x):
     """
     Return the sine of x (measured in degrees).
@@ -159,12 +161,33 @@ def helioEcl2geoEcl(eLon, eLat, eDist, pLon, pLat, pDist):
     :param float pLat: Heliocentric, ecliptic latitude of planet (degree)
     :param float pDist: Distance from sun (AU)
     :return: Geocentric ecliptic coordinates
-             lamda (ecliptic lon), beta (ecliptic lat), Delta (earth distance)
+             beta (ecliptic lat), lamda (ecliptic lon), Delta (earth distance)
     :rtype: list(float)
     """
     x = pDist * cos(pLat) * cos(pLon) - eDist * cos(eLat) * cos(eLon)
-    y = pDist * cos(pLat) * sin(pLon)   - eDist * cos(eLat) * sin(eLon)
-    z = pDist * sin(pLat)                   - eDist * sin(eLat)
+    y = pDist * cos(pLat) * sin(pLon) - eDist * cos(eLat) * sin(eLon)
+    z = pDist * sin(pLat)             - eDist * sin(eLat)
+    return cart2sphe(x, y, z)
+
+def geoEcl2helioEcl(eLon, eLat, eDist, pLon, pLat, pDist):
+    """
+    Convert geocentric, ecliptic coordinates to heliocentric, ecliptic
+    coordinates.
+
+    :param float eLon: Heliocentric, ecliptic longitude of earth (degree)
+    :param float eLat: Heliocentric, ecliptic latitude of earth (degree)
+    :param float eDist: Earth distance from sun (AU)
+    :param float pLon: Geocentric, ecliptic longitude of planet (degree)
+    :param float pLat: Geocentric, ecliptic latitude of planet (degree)
+    :param float pDist: Distance from earth (AU)
+    :return: Heliocentric ecliptic coordinates
+             b (ecliptic lat), l (ecliptic lon), r (distance sun)
+    :rtype: list(float)
+    """
+    px, py, pz = sphe2cart(pLat, pLon, pDist)
+    x = px  + eDist * cos(eLat) * cos(eLon)
+    y = py  + eDist * cos(eLat) * sin(eLon)
+    z = pz  + eDist * sin(eLat)
     return cart2sphe(x, y, z)
 
 def sphe2cart(beta, lamda, r):
@@ -246,12 +269,11 @@ def calcPositionSun(jd):
 
 def calcPositionMoon(jd):
     """
-    Calculate the geocentric, equatorial position (ra, dec) of the moon for a
-    julian date.
+    Calculate the geocentric, ecliptic position of the moon for a julian date.
 
     :param float jd: Julian date
-    :return: Geocentric, equatorial coordinates
-             (right ascension alpha, declination delta) in degree
+    :return: Geocentric, ecliptic coordinates
+             beta (ecliptic lat), lambda (ecliptic lon), Delta (earth distance)
     """
     T  = (jd - 2451545.0) / 36525
     L0 = (218.31665 + 481267.88134 * T - 0.001327 * T**2) % 360.0
@@ -282,7 +304,15 @@ def calcPositionMoon(jd):
          +21   * sin(-l + F)
          +11   * sin(-l_ + F - 2 * D))
     beta = B / 60 / 60 # geocentric, ecliptic latitude
-    return geoEcl2geoEqua(beta, lamb)   # ra, dec
+    Delta_km = (385000 - 20905 * cos(l) - 570 * cos(2 * l)
+                - 3699 * cos(2 * D - l)
+                - 2956 * cos(2 * D)
+                + 246 * cos(2 * l - 2 * D)
+                - 205 * cos(l_ - 2 * D)
+                - 171 * cos(l + 2 * D)
+                - 152 * cos(l + l_ -2 * D)) # distance to earth [km]
+    Delta = Delta_km / AU
+    return (beta, lamb, Delta)
 
 def deg2sex(degree):
     """
@@ -352,7 +382,8 @@ def calcRiseSet_moon(longitude, latitude, date):
     objType = "moon"
     elevation = 0.133333
     def objPosFunc(t):
-        ra, dec = calcPositionMoon(julian_date(t))
+        beta, lamb, Delta = calcPositionMoon(julian_date(t))
+        ra, dec = geoEcl2geoEqua(beta, lamb)
         return ra / 15, dec
     r = calcRiseSet(objType, elevation, longitude, latitude, objPosFunc,
                     date, 12, True, 5)
@@ -423,3 +454,16 @@ def calcRiseSet(objType, elevation, longitude, latitude, objPosFunc, date, T0,
 
     delta = datetime.timedelta(hours=T)
     return (baseDate + delta)
+
+def calcPhase(delta, r, R):
+    """
+    Calculate the phase of an object in percent.
+
+    :param float delta: Object distance from earth (AU).
+    :param float r: Object distance from sun. (AU).
+    :param float R: Earth distance from sun. (AU).
+    :return: Phase in percent.
+    """
+    i = acos((delta**2 + r**2 - R**2) / (2 * delta * r))
+    k = 0.5 * (1 + cos(i))
+    return k * 100

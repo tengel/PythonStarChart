@@ -3,6 +3,7 @@
 import unittest
 import math
 import kepler
+import astro
 import ephem
 import datetime
 
@@ -80,6 +81,17 @@ class TestPlanets(unittest.TestCase):
 
     def test_neptune(self):
         self.runTests(ephem.Neptune(), kepler.Neptune())
+
+    def testPhase(self):
+        date = datetime.datetime(2020, 1, 1)
+        e = kepler.Earth()
+        e.calcHeliocentric(date)
+        lat, lon, dist = astro.calcPositionMoon(astro.julian_date(date))
+        b, l, r = astro.geoEcl2helioEcl(e.helio_lon, e.helio_lat, e.distance_sun,
+                                        lon, lat, dist)
+        k = astro.calcPhase(dist, r, e.distance_sun)
+        self.assertAlmostEqual(k, 29.9, places=1)
+
 
 if __name__ == '__main__':
     unittest.main()
